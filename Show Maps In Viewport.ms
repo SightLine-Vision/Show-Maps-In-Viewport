@@ -2,7 +2,7 @@
 [INFO]
 
 NAME = Show Maps In Viewport
-VERSION = 1.0.0
+VERSION = 1.0.1
 AUTHOR = MastaMan
 DEV = ViscoCG
 HELP = \help\showMapsInViewport.html
@@ -16,6 +16,10 @@ ICON=#("Material_Modifiers", 4)
 [1.0.0]
 
 * First release =
+
+[1.0.1]
+
++ Added: Progress bar=
 
 [ABOUT]
 
@@ -41,7 +45,7 @@ Supported types:=
 */
 
 
-fn getScriptIniInfo s releaseInfo: "" =
+fn getScriptInfo s releaseInfo: "" =
 (		
 	if(releaseInfo != "") do
 	(
@@ -49,20 +53,16 @@ fn getScriptIniInfo s releaseInfo: "" =
 		return r
 	)
 	
-	fn isVer i = (filterString i ".").count > 1
-	
 	v = getINISetting s "INFO" "VERSION"
 	a = getINISetting s "INFO" "AUTHOR"
 	n = getINISetting s "INFO" "NAME"
 	o = getINISetting s "ABOUT"
 	c = getINISetting s "INFO" "DEV"
 	h = getINISetting s "INFO" "HELP"
-	t = getINISetting s "TEST"
-	b = getINISetting s "INSTALL"
-	 			
-	r = for i in (getINISetting s) where isVer i  collect i
 	
-	return #(n, a, v, o, r, c, h, t, b)
+	r = for i in (getINISetting s) where i != "ABOUT" and i != "SCRIPT" and i != "COPY" collect i
+	
+	return #(n, a, v, o, r, c, h)
 )
 
 fn writeFile f s =
@@ -185,6 +185,12 @@ fn getMaterials =
 
 fn showInViewport id mtl =
 (
+	progressStart "Show Maps In Viewport..."
+	escapeEnable
+	
+	disableSceneRedraw()
+	
+	i = 0
 	for m in mtl do
 	(
 		if(id == 1) do
@@ -194,6 +200,11 @@ fn showInViewport id mtl =
 		)
 		
 		t = supportTypes[id][2]
+		
+		i += 1
+		
+		progressUpdate (100.0 * i / mtl.count)
+		if(getProgressCancel() == true)do exit	
 		
 		b = undefined
 		if(not hasProperty m t) do continue
@@ -205,6 +216,10 @@ fn showInViewport id mtl =
 		m.showInViewport = on
 		showTextureMap m b on		
 	)
+	
+	enableSceneRedraw()
+	
+	progressEnd()
 )	
 	
 /* //////////////////////////////////////////////////////////////////////// */
